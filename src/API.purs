@@ -1,4 +1,8 @@
-module API where
+module API (
+    getFullHistory,
+    MyDateTime,
+    RPS
+) where
 
 import Affjax as AX
 import Affjax.ResponseFormat (json)
@@ -9,6 +13,7 @@ import Data.Either (Either(..), note)
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Seconds(..), fromDuration)
+import Data.HTTP.Method (Method(..))
 import Effect.Aff (Aff)
 import Prelude (bind, map, pure, ($))
 
@@ -65,7 +70,12 @@ mapLeft _ (Right x) = Right x
 
 getFullHistory :: Aff (Either String HistoryResponse)
 getFullHistory = do
-    page <- AX.get json (_API_URL)
+    page <- AX.request (AX.defaultRequest {
+        url = _API_URL,
+        method = Left GET,
+        responseFormat = json,
+        withCredentials = true
+    })
     case page of
         Left err -> pure (Left $ AX.printError err)
         Right res -> pure $ mapLeft printJsonDecodeError (decodeJson res.body)
