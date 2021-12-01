@@ -18,6 +18,9 @@ to generate this file without the comments in this block.
   , "console"
   , "datetime"
   , "effect"
+  , "either"
+  , "integers"
+  , "maybe"
   , "prelude"
   , "psci-support"
   ]
