@@ -1,0 +1,1 @@
+require("../output/Rps.Main").main();

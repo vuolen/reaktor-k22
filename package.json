@@ -4,8 +4,9 @@
   "description": "My solution for Reaktor's 2022 assignment",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run build -- --watch",
-    "build": "spago bundle-app --to ./build/index.js",
+    "watch": "DEV=1 node esbuild.js & spago build --watch",
+    "dev:build": "spago bundle-app --source-maps --purs-args \"-g sourcemaps\"",
+    "ide-build": "npm run build -- --purs-args --json-errors",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,7 +20,14 @@
   },
   "homepage": "https://github.com/vuolen/reaktor-k22#readme",
   "dependencies": {
+    "esbuild": "^0.14.1",
+    "http-server": "^14.0.0",
     "purescript": "^0.14.5",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "spago": "^0.20.3"
+  },
+  "devDependencies": {
+    "xhr2": "^0.2.1"
   }
 }

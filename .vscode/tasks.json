@@ -3,14 +3,18 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "build",
+			"script": "ide-build",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "npm: build",
-			"detail": "npm run build"
+			"label": "npm: ide-build",
+			"detail": "npm run build -- --purs-args --json-errors",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			}
 		}
 	]
 }
