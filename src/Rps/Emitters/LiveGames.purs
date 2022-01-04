@@ -9,8 +9,8 @@ import Prelude (Unit, bind, pure, void, ($))
 import Rps.Emitters.WS as WS
 import Rps.Types (LiveGame(..), WSEvent(..))
 
-liveGames :: Effect (Emitter (Array LiveGame))
-liveGames = do
+liveGamesEmitter :: Effect (Emitter (Array LiveGame))
+liveGamesEmitter = do
     {listener, emitter} <- create
     wsEmitter <- WS.connectWS
     liveGameMap :: Ref.Ref (Object LiveGame) <- Ref.new empty
