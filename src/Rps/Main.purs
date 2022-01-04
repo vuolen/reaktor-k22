@@ -2,98 +2,96 @@ module Rps.Main where
 
 import Prelude
 
-import Control.Monad.Except (lift, runExceptT, throwError)
-import Control.Monad.State (get, gets, modify_, put, runStateT)
-import Data.Argonaut ((.!=))
-import Data.Array (filter, foldr, (:))
+import Control.Monad.Except (runExceptT)
+import Control.Monad.State (runStateT)
+import Data.Array (uncons, (:))
 import Data.Either (Either(..))
-import Data.HashMap (HashMap, empty, insert, insertWith)
-import Data.Lazy (Lazy, defer)
 import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple, snd)
-import Data.Tuple.Nested ((/\))
-import Debug (spy)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.AVar as AVar
-import Effect.Aff (Aff, Fiber, joinFiber, launchAff, launchAff_, runAff)
+import Effect.Aff (Aff, Milliseconds(..), delay, runAff_)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (errorShow, logShow)
-import Effect.Console (error, log)
-import Effect.Exception (Error, throw)
+import Effect.Console (error)
+import Effect.Exception (Error)
+import Effect.Ref (Ref)
+import Effect.Ref as Ref
 import Effect.Timer (setTimeout)
-import Effect.Uncurried (EffectFn1)
-import RefQueue as RQ
+import Foreign.Object (Object, delete, empty, fromFoldableWith, insert, union, values)
+import Halogen.Subscription (Emitter, Listener, create, fold, notify, subscribe)
 import Rps.API (HistoryResponse, apiGetJson)
-import Rps.Types (NewGame, PlayedGame, RpsMonad, WebSocketMessage(..), RpsState)
+import Rps.Emitters.LiveGames (liveGames)
+import Rps.Types (GameId, LiveGame(..), RpsMonad, RpsState, WSEvent(..), PlayedGame)
+import Rps.UI as UI
 import Rps.WS as WS
 
-
 type Props = {
-    liveGames :: Array NewGame
+    liveGames :: Array LiveGame
 }
-
-foreign import render :: Props -> Effect Unit
 
 runRpsMonad :: forall a. RpsMonad a -> RpsState -> Aff (Either Error (Tuple a RpsState))
 runRpsMonad monad state = runExceptT $ runStateT monad state
+{- 
+combine2 :: forall a b. Emitter a -> Emitter b -> Emitter (Tuple a b)
+combine2 eA eB = makeEmitter \k -> do
+    latestA <- Ref.new Nothing
+    latestB <- Ref.new Nothing
+    sub1 <- eA \a -> do
+        Ref.write (Just a) latestA
+        b <- Ref.read latestB
+        k (Tuple a b)   
+    sub2 <- eB \b -> do
+        Ref.write (Just b) latestB
+        a <- Ref.read latestA
+        k (Tuple a b)
+    pure $ unsubscribe sub1 >>= unsubscribe sub2 -}
 
 main :: Effect Unit 
 main = do
-    messages <- AVar.empty
-    let initialState = {
-        playedGames: empty,
-        liveGames: [],
-        messages
-    }
-    void $ runAff (
-        \e -> case e of
-            Right (Right (_ /\ state)) -> loop state
-            Right (Left err) -> throwError err
-            Left err -> throwError err
-    ) $ runRpsMonad (do WS.connect) initialState
+    app <- createApp
+    void $ subscribe app (\_ -> pure unit)
+    
 
-    where 
-        loop :: RpsState -> Effect Unit
-        loop state = do
-          void $ runAff (
-            \e -> case e of
-                Right (Right (_ /\ newState)) -> void $ setTimeout 1000 (loop newState)
-                Right (Left err) -> throwError err
-                Left err -> throwError err
-          ) $ runRpsMonad app state
+createApp :: Effect (Emitter Unit)
+createApp = do
+    {listener, emitter} <- create
+    live <- liveGames
+    history <- historyPages
 
-app :: RpsMonad Unit
-app = do
-    liftEffect $ log "app"
-    messages <- gets _.messages
-    maybeMessage <- liftEffect $ AVar.tryTake messages
-    case maybeMessage of
-        Just msg -> case msg of
-            GameBegin newGame -> modify_ \state -> state {
-                liveGames = newGame : state.liveGames
-            }
-            GameResult playedGame -> modify_ \state -> state {
-                liveGames = filter (\liveGame -> liveGame.gameId == playedGame.gameId) state.liveGames,
-                playedGames = insertWith (<>) playedGame.playerA.name [playedGame] $ insertWith (<>) playedGame.playerB.name [playedGame] state.playedGames
-            }
-        Nothing -> pure unit
-    liveGames <- gets _.liveGames
-    liftEffect $ render {
-        liveGames
-    }
+    let props = Tuple <$> live <*> history
 
-data Recur = Next (Lazy (RpsMonad Recur)) | End
+    _ <- subscribe props \(Tuple liveGames history) -> do
+        UI.renderApp {liveGames: [], history}
+        notify listener unit
+        
+    pure emitter
 
-getPage :: String -> RpsMonad Recur
-getPage path = do
-        state <- get
-        page :: HistoryResponse <- lift $ apiGetJson path
-        put $ state {
-            playedGames = updatePlayedGames state.playedGames (spy "data" page.data) 
-        }
-        case page.cursor of
-            Just c -> pure $ Next $ defer \_ -> getPage c
-            Nothing -> pure $ End
+
+historyPages :: Effect (Emitter (Object (Array PlayedGame)))
+historyPages = do
+    {emitter, listener} <- create
+    runAff_ (\e -> case e of
+                Left err -> error $ show err
+                Right _ -> pure unit) $ getPages "/rps/history" listener
+    pure $ fold (\page history -> 
+        let 
+            createKeyValues :: Array PlayedGame -> Array (Tuple GameId (Array PlayedGame)) -> Array (Tuple GameId (Array PlayedGame))
+            createKeyValues games keyValues = case uncons games of
+                Just {head: game, tail: rest} -> (Tuple game.playerA.name [game]) : (Tuple game.playerB.name [game]) : (createKeyValues rest keyValues)
+                Nothing -> keyValues
+            newMap = fromFoldableWith (<>) $ createKeyValues page.data []
+        in union history newMap
+        ) emitter empty
     where
-        updatePlayedGames :: HashMap String (Array PlayedGame) -> Array PlayedGame -> HashMap String (Array PlayedGame)
-        updatePlayedGames playedGames newGames = foldr (\game acc -> insertWith (<>) game.playerA.name [game] acc) playedGames newGames
+        getPages :: String -> Listener HistoryResponse -> Aff Unit
+        getPages path listener = do
+            page :: Either Error HistoryResponse <- apiGetJson path
+            case page of
+                Right response -> case response.cursor of
+                    Just c -> do
+                        liftEffect $ notify listener response
+                        getPages c listener
+                    Nothing -> pure unit
+                Left err -> do
+                    liftEffect $ error $ "Failed to fetch page " <> path <> " - Trying again in 3 seconds" 
+                    delay (Milliseconds 3000.0)
+                    getPages path listener
