@@ -6,6 +6,7 @@ module Rps.Emitters.History (
 
 import Prelude
 
+import Control.Monad.ST (ST)
 import Data.Array (foldr, (:))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -14,14 +15,18 @@ import Effect (Effect)
 import Effect.Aff (Aff, Error, Milliseconds(..), delay, error, killFiber, runAff, runAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console as Console
-import Foreign.Object (Object, empty, insert, lookup)
+import Foreign.Object (Object, empty, insert, lookup, runST, thawST)
+import Foreign.Object.ST (STObject, peek, poke)
 import Halogen.Subscription (Emitter, fold, makeEmitter)
 import Rps.API (HistoryResponse, apiGetJson)
 import Rps.Types (PlayedGame, RPS(..))
 import Rps.Util (isWin, withFirst)
 
 historyEmitter :: Emitter History
-historyEmitter = withFirst empty $ fold (\page history -> foldr addGameToHistory history page.data) pagesEmitter empty
+historyEmitter = withFirst empty $ fold (\page history -> runST (foldr addGameToHistory (thawST history) page.data)) pagesEmitter empty
+    where 
+        st :: forall r. HistoryResponse -> History -> STHistory r
+        st page history = foldr addGameToHistory (thawST history) page.data
         
 
 pagesEmitter :: Emitter HistoryResponse
@@ -61,12 +66,19 @@ type Player = {
     games :: Array PlayedGame
 }
 
-addGameToHistory :: PlayedGame -> History -> History
-addGameToHistory game history = foldr (
-        \player oldHistory -> case lookup player.name oldHistory of
-            Just player -> insert player.name (addGameToPlayer game player) oldHistory
-            Nothing -> insert player.name (addGameToPlayer game (newPlayer player.name)) oldHistory
-    ) history [game.playerA, game.playerB]
+-- This state manipulation increased fps from around 50 to 90 for me (on a desktop)
+
+type STHistory r = ST r (STObject r Player)
+
+addGameToHistory :: forall r. PlayedGame -> STHistory r -> STHistory r
+addGameToHistory game historyST = do
+    foldr (\player oldHistoryST -> do
+            oldHistory <- oldHistoryST
+            maybeExistingPlayer <- peek player.name oldHistory
+            case maybeExistingPlayer of
+                Just existingPlayer -> poke existingPlayer.name (addGameToPlayer game existingPlayer) oldHistory
+                Nothing -> poke player.name (addGameToPlayer game (newPlayer player.name)) oldHistory
+    ) historyST [game.playerA, game.playerB]
 
     where
         addGameToPlayer :: PlayedGame -> Player -> Player
