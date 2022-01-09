@@ -4,15 +4,14 @@ import Effect (Effect)
 import Effect.Ref as Ref
 import Effect.Timer (setTimeout)
 import Foreign.Object (Object, delete, empty, insert, values)
-import Halogen.Subscription (Emitter, create, notify, subscribe)
+import Halogen.Subscription (Emitter, makeEmitter, subscribe, unsubscribe)
 import Prelude (Unit, bind, pure, void, ($))
 import Rps.Emitters.WS as WS
 import Rps.Types (LiveGame(..), WSEvent(..))
+import Rps.Util.Emitters (withFirst)
 
-liveGamesEmitter :: Effect (Emitter (Array LiveGame))
-liveGamesEmitter = do
-    {listener, emitter} <- create
-    wsEmitter <- WS.connectWS
+liveGamesEmitter :: Emitter (Array LiveGame)
+liveGamesEmitter = withFirst [] $ makeEmitter \cb -> do
     liveGameMap :: Ref.Ref (Object LiveGame) <- Ref.new empty
 
     let
@@ -26,7 +25,7 @@ liveGamesEmitter = do
         modifyRefAndNotifyValues :: (Object LiveGame -> Object LiveGame) -> Effect Unit
         modifyRefAndNotifyValues fn = do
             newMap <- Ref.modify fn liveGameMap
-            notify listener $ values newMap
+            cb $ values newMap
 
-    _ <- subscribe wsEmitter updateLiveGames
-    pure $ emitter
+    sub <- subscribe WS.connectWS updateLiveGames
+    pure $ unsubscribe sub

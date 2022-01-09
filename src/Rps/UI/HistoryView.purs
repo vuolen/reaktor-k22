@@ -2,18 +2,23 @@ module Rps.UI.HistoryView where
 
 import React
 
-import Foreign.Object (Object, size)
-import Prelude (show, ($), (<>))
-import React.DOM (div')
-import React.DOM.Dynamic (text)
-import Rps.Types (PlayedGame, GameId)
-import Rps.UI.PlayedGame (playedGame)
+import Foreign.Object (values)
+import Prelude (map, ($))
+import React.DOM (table', tbody', td', text, thead', tr')
+import Rps.Emitters.History (History)
+import Rps.UI.Player (playerComponent)
 
-type HistoryViewProps = {history :: Object (Array PlayedGame)}
+type HistoryViewProps = {history :: History}
 
 historyView :: ReactClass HistoryViewProps
 historyView = statelessComponent \{history} ->
-    div' [
-        text $ "Fetched " <> show (size history) <> " players."
+    table' $ [
+        thead' [
+            tr' [
+                td' [text "Name"],
+                td' [text "Games played"]
+            ]
+        ],
+        tbody' $ map createPlayer $ values history
     ]
-    where createPlayedGame game = createLeafElement playedGame {game}
+    where createPlayer player = createLeafElement playerComponent {key: player.name, player}
