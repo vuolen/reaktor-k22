@@ -21,6 +21,8 @@ instance showRPS :: Show RPS where
   show Rock = "Rock"
   show Paper = "Paper"
   show Scissors = "Scissors"
+
+derive instance eqRPS :: Eq RPS
   
 
 data LiveGame = InProgress NewGame | Finished PlayedGame

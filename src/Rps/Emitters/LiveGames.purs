@@ -8,7 +8,7 @@ import Halogen.Subscription (Emitter, makeEmitter, subscribe, unsubscribe)
 import Prelude (Unit, bind, pure, void, ($))
 import Rps.Emitters.WS as WS
 import Rps.Types (LiveGame(..), WSEvent(..))
-import Rps.Util.Emitters (withFirst)
+import Rps.Util (withFirst)
 
 liveGamesEmitter :: Emitter (Array LiveGame)
 liveGamesEmitter = withFirst [] $ makeEmitter \cb -> do

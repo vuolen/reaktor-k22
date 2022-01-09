@@ -16,7 +16,9 @@ historyView = statelessComponent \{history} ->
         thead' [
             tr' [
                 td' [text "Name"],
-                td' [text "Games played"]
+                td' [text "Win ratio"],
+                td' [text "Games played"],
+                td' [text "Most played hand"]
             ]
         ],
         tbody' $ map createPlayer $ values history
