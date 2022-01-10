@@ -10,24 +10,30 @@ import Control.Monad.ST (ST)
 import Data.Array (foldr, (:))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Debug (spy)
+import Data.Traversable (traverse_)
 import Effect (Effect)
 import Effect.Aff (Aff, Error, Milliseconds(..), delay, error, killFiber, runAff, runAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console as Console
-import Foreign.Object (Object, empty, insert, lookup, runST, thawST)
+import Foreign.Object (Object, empty, runST, thawST)
 import Foreign.Object.ST (STObject, peek, poke)
-import Halogen.Subscription (Emitter, fold, makeEmitter)
+import Halogen.Subscription (Emitter, fold, makeEmitter, subscribe, unsubscribe)
 import Rps.API (HistoryResponse, apiGetJson)
-import Rps.Types (PlayedGame, RPS(..))
+import Rps.Emitters.WS as WS
+import Rps.Types (RPS(..), WSEvent(..), PlayedGame)
 import Rps.Util (isWin, withFirst)
 
 historyEmitter :: Emitter History
-historyEmitter = withFirst empty $ fold (\page history -> runST (foldr addGameToHistory (thawST history) page.data)) pagesEmitter empty
-    where 
-        st :: forall r. HistoryResponse -> History -> STHistory r
-        st page history = foldr addGameToHistory (thawST history) page.data
+historyEmitter = withFirst empty $ fold (\page history -> runST (foldr addGameToHistory (thawST history) page)) playedGamesEmitter empty
         
+-- emits an array for efficiency. When a page gets fetched theres ~600 games and updating the history one by one is a bit slow
+playedGamesEmitter :: Emitter (Array PlayedGame)
+playedGamesEmitter = makeEmitter \cb -> do
+    sub1 <- subscribe pagesEmitter (cb <<< _.data)
+    sub2 <- subscribe WS.connectWS (case _ of
+        (GameResult playedGame) -> cb [playedGame]
+        _ -> pure unit)
+    pure $ traverse_ unsubscribe [sub1, sub2]
 
 pagesEmitter :: Emitter HistoryResponse
 pagesEmitter = makeEmitter \cb -> do
@@ -35,7 +41,8 @@ pagesEmitter = makeEmitter \cb -> do
                 Left err -> Console.error $ show err
                 -- TODO: CHOOSE CORRECTLY WHEN FINISHED, avoids a lot of requests when debugging
                 --Right _ -> pure unit) $ getPages "/rps/history?cursor=3ecMyZ0t7AAo" cb
-                Right _ -> pure unit) $ getPages "/rps/history" cb
+                Right _ -> pure unit) $ getPages "/rps/history?cursor=-sz1vUtyeKGl" cb 
+                --Right _ -> pure unit) $ getPages "/rps/history" cb
     pure $ runAff_ (\e -> case e of
                         Left err -> Console.error $ "Failed to kill fiber.. what now"
                         Right _ -> Console.log $ "Killed pagesEmitter succesfully") $ killFiber (error "pagesEmitter unsubscribed") fiber
