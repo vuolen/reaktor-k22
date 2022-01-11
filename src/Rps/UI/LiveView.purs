@@ -1,8 +1,10 @@
 module Rps.UI.LiveView where
 
-import Prelude (map, ($))
 import React
-import React.DOM (div')
+
+import Prelude (map, ($), (<>))
+import React.DOM (div, h1', text)
+import React.DOM.Props (className)
 import Rps.Types (LiveGame)
 import Rps.UI.LiveGame (liveGame)
 
@@ -10,5 +12,7 @@ type LiveViewProps = {liveGames :: Array LiveGame}
 
 liveView :: ReactClass LiveViewProps
 liveView = statelessComponent \{liveGames} ->
-    div' $ map createLiveGame liveGames
+    div [className "live"] $ [
+        h1' [text "Live"]
+    ] <> (map createLiveGame liveGames)
     where createLiveGame game = createLeafElement liveGame {game}

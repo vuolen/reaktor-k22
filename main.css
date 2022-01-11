@@ -1,0 +1,44 @@
+body {
+    background: #eeeeee;
+    color: #34363b;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 1em;
+}
+
+.app {
+    width: 100%;
+}
+
+.history {
+    width: 50%;
+    float: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.live {
+    width: 50%;
+    float: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.player {
+    margin: 5px;
+    background: #dddddd;
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px #111111;
+}
+
+.player-header {
+    padding: 5px;
+    background: #cccccc;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    
+}
+
+.player-header-cell {
+    text-align: center;
+}

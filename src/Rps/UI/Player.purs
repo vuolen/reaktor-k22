@@ -1,23 +1,25 @@
 module Rps.UI.Player where
 
-import React
-
 import Data.Int (toNumber)
-import Debug (spy)
 import Math (trunc)
 import Prelude (max, otherwise, show, ($), (*), (/), (<>), (==), (>))
-import React.DOM (int, number, td', text, tr')
+import RPS.UI.PlayedGame (playedGameComponent)
+import React (ReactClass, ReactElement, createLeafElement, statelessComponent)
+import React.DOM (b', br', div, div', int, span, span', text)
+import React.DOM.Props (className, key)
 import Rps.Emitters.History (Player)
 
 type PlayerProps = {player :: Player}
 
 playerComponent :: ReactClass PlayerProps
 playerComponent = statelessComponent \{player} -> 
-    tr' [
-        td' [text player.name],
-        td' [winRatio player],
-        td' [int player.nGames],
-        td' [mostPlayed player]
+    div [key player.name, className "player"] $ [
+        div [className "player-header"] [
+            span [className "player-header-cell"] [b' [text "Name"], br', text player.name],
+            span [className "player-header-cell"] [b' [text "Win ratio"], br', winRatio player],
+            span [className "player-header-cell"] [b' [text "Games played"], br', int player.nGames],
+            span [className "player-header-cell"] [b' [text "Most played hand"], br', mostPlayed player]
+        ]
     ]
     where 
         winRatio :: Player -> ReactElement
@@ -31,3 +33,5 @@ playerComponent = statelessComponent \{player} ->
             | player.nRocks > max player.nPapers player.nScissors = text "Rock"
             | player.nPapers > max player.nRocks player.nScissors = text "Paper"
             | otherwise = text "Scissors"
+
+        createPlayedGame game = createLeafElement playedGameComponent {game}

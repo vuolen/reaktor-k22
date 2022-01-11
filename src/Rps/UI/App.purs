@@ -2,7 +2,8 @@ module Rps.UI.App where
 
 import React
 
-import React.DOM (div')
+import React.DOM (div, div')
+import React.DOM.Props (className)
 import Rps.Emitters.History (History)
 import Rps.Types (LiveGame)
 import Rps.UI.HistoryView (historyView)
@@ -12,7 +13,7 @@ type AppProps = {liveGames :: Array LiveGame, history :: History}
 
 app :: ReactClass AppProps
 app = statelessComponent \{liveGames, history} ->
-    div' [
+    div [className "app"] [
         createLeafElement liveView {liveGames},
         createLeafElement historyView {history}
     ]

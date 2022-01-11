@@ -40,8 +40,8 @@ pagesEmitter = makeEmitter \cb -> do
     fiber <- runAff (\e -> case e of
                 Left err -> Console.error $ show err
                 -- TODO: CHOOSE CORRECTLY WHEN FINISHED, avoids a lot of requests when debugging
-                --Right _ -> pure unit) $ getPages "/rps/history?cursor=3ecMyZ0t7AAo" cb
-                Right _ -> pure unit) $ getPages "/rps/history?cursor=-sz1vUtyeKGl" cb 
+                Right _ -> pure unit) $ getPages "/rps/history?cursor=3ecMyZ0t7AAo" cb
+                --Right _ -> pure unit) $ getPages "/rps/history?cursor=-sz1vUtyeKGl" cb 
                 --Right _ -> pure unit) $ getPages "/rps/history" cb
     pure $ runAff_ (\e -> case e of
                         Left err -> Console.error $ "Failed to kill fiber.. what now"
