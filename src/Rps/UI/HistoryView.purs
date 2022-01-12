@@ -18,7 +18,7 @@ historyView = statelessComponent \{history} ->
         table' $ [
             thead' [
                 tr' [
-                    th [colSpan 2] [text "Name"],
+                    th' [text "Name"],
                     th' [text "Win ratio"],
                     th' [text "Games played"],
                     th' [text "Most played hand"]
