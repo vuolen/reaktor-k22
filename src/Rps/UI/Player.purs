@@ -2,23 +2,40 @@ module Rps.UI.Player where
 
 import Data.Int (toNumber)
 import Math (trunc)
-import Prelude (max, otherwise, show, ($), (*), (/), (<>), (==), (>))
+import Prelude (map, max, otherwise, show, ($), (*), (/), (<>), (==), (>))
 import RPS.UI.PlayedGame (playedGameComponent)
-import React (ReactClass, ReactElement, createLeafElement, statelessComponent)
-import React.DOM (b', br', div, div', int, span, span', text)
-import React.DOM.Props (className, key)
+import React (ReactClass, ReactElement, createLeafElement, fragmentWithKey, statelessComponent)
+import React.DOM (b', br', div, div', int, span, span', table, table', tbody, tbody', td, td', text, th', thead', tr, tr')
+import React.DOM.Dynamic (thead)
+import React.DOM.Props (className, colSpan, key)
 import Rps.Emitters.History (Player)
 
 type PlayerProps = {player :: Player}
 
 playerComponent :: ReactClass PlayerProps
 playerComponent = statelessComponent \{player} -> 
-    div [key player.name, className "player"] $ [
-        div [className "player-header"] [
-            span [className "player-header-cell"] [b' [text "Name"], br', text player.name],
-            span [className "player-header-cell"] [b' [text "Win ratio"], br', winRatio player],
-            span [className "player-header-cell"] [b' [text "Games played"], br', int player.nGames],
-            span [className "player-header-cell"] [b' [text "Most played hand"], br', mostPlayed player]
+    fragmentWithKey player.name [
+        tr [className "player"] [
+            td [colSpan 2] [text player.name],
+            td' [winRatio player],
+            td' [int player.nGames],
+            td' [mostPlayed player]
+        ],
+        tr [className "playedGames"] [
+            td [colSpan 4] [
+                table' [
+                    thead' [
+                        tr' [
+                            th' [text "Finished"],
+                            th' [text "Player A"],
+                            th' [text "Player B"],
+                            th' [text "Winner"]
+                        ]
+                    ],
+                    tbody' $ map createPlayedGame player.games
+                ]
+            ]
+            
         ]
     ]
     where 

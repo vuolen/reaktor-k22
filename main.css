@@ -23,6 +23,10 @@ body {
     flex-direction: column;
 }
 
+td {
+    text-align: center;
+}
+
 .player {
     margin: 5px;
     background: #dddddd;
@@ -33,10 +37,6 @@ body {
 .player-header {
     padding: 5px;
     background: #cccccc;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    
 }
 
 .player-header-cell {

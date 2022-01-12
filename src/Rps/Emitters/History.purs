@@ -40,11 +40,11 @@ pagesEmitter = makeEmitter \cb -> do
     fiber <- runAff (\e -> case e of
                 Left err -> Console.error $ show err
                 -- TODO: CHOOSE CORRECTLY WHEN FINISHED, avoids a lot of requests when debugging
-                Right _ -> pure unit) $ getPages "/rps/history?cursor=3ecMyZ0t7AAo" cb
-                --Right _ -> pure unit) $ getPages "/rps/history?cursor=-sz1vUtyeKGl" cb 
+                --Right _ -> pure unit) $ getPages "/rps/history?cursor=3ecMyZ0t7AAo" cb
+                Right _ -> pure unit) $ getPages "/rps/history?cursor=-sz1vUtyeKGl" cb 
                 --Right _ -> pure unit) $ getPages "/rps/history" cb
     pure $ runAff_ (\e -> case e of
-                        Left err -> Console.error $ "Failed to kill fiber.. what now"
+                        Left _ -> Console.error $ "Failed to kill fiber.. what now"
                         Right _ -> Console.log $ "Killed pagesEmitter succesfully") $ killFiber (error "pagesEmitter unsubscribed") fiber
     where
         getPages :: String -> (HistoryResponse -> Effect Unit) -> Aff Unit
@@ -56,7 +56,7 @@ pagesEmitter = makeEmitter \cb -> do
                         liftEffect $ callback response
                         getPages c callback
                     Nothing -> pure unit
-                Left err -> do
+                Left _ -> do
                     liftEffect $ Console.error $ "Failed to fetch page " <> path <> " - Trying again in 3 seconds" 
                     delay (Milliseconds 3000.0)
                     getPages path callback
