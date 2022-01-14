@@ -7,7 +7,7 @@ module Rps.Emitters.History
 import Prelude
 
 import Control.Monad.ST (ST)
-import Data.Array (foldr, insert, insertBy, (:))
+import Data.Array (foldr, insertBy)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse_)
@@ -43,11 +43,8 @@ pagesEmitter = makeEmitter \cb -> do
     runAff
       ( \e -> case e of
           Left err -> Console.error $ show err
-          -- TODO: CHOOSE CORRECTLY WHEN FINISHED, avoids a lot of requests when debugging
           Right _ -> pure unit
-      ) $ getPages "/rps/history?cursor=3ecMyZ0t7AAo" cb
-  --Right _ -> pure unit) $ getPages "/rps/history?cursor=-sz1vUtyeKGl" cb 
-  --Right _ -> pure unit) $ getPages "/rps/history" cb
+      ) $ getPages "/rps/history" cb
   pure
     $ runAff_
         ( \e -> case e of
@@ -100,25 +97,6 @@ addGameToHistory game historyST = do
     [ game.playerA, game.playerB ]
 
   where
-  addGameToPlayer :: PlayedGame -> Player -> Player
-  addGameToPlayer game player = player
-    { nGames = player.nGames + 1
-    , nWins = if isWin playerPlayed opponentPlayed then player.nWins + 1 else player.nWins
-    , nRocks = incrementIfPlayed Rock player.nRocks
-    , nPapers = incrementIfPlayed Paper player.nPapers
-    , nScissors = incrementIfPlayed Scissors player.nScissors
-    , games = insertBy (\a b -> compare b.t a.t) game player.games
-    }
-    where
-    { playerPlayed, opponentPlayed } =
-      if game.playerA.name == player.name then
-        { playerPlayed: game.playerA.played, opponentPlayed: game.playerB.played }
-      else
-        { opponentPlayed: game.playerA.played, playerPlayed: game.playerB.played }
-
-    incrementIfPlayed :: RPS -> Int -> Int
-    incrementIfPlayed rps n = if playerPlayed == rps then n + 1 else n
-
   newPlayer :: String -> Player
   newPlayer name =
     { name
@@ -129,3 +107,22 @@ addGameToHistory game historyST = do
     , nScissors: 0
     , games: []
     }
+
+addGameToPlayer :: PlayedGame -> Player -> Player
+addGameToPlayer game player = player
+  { nGames = player.nGames + 1
+  , nWins = if isWin playerPlayed opponentPlayed then player.nWins + 1 else player.nWins
+  , nRocks = incrementIfPlayed Rock player.nRocks
+  , nPapers = incrementIfPlayed Paper player.nPapers
+  , nScissors = incrementIfPlayed Scissors player.nScissors
+  , games = insertBy (\a b -> compare b.t a.t) game player.games
+  }
+  where
+  { playerPlayed, opponentPlayed } =
+    if game.playerA.name == player.name then
+      { playerPlayed: game.playerA.played, opponentPlayed: game.playerB.played }
+    else
+      { opponentPlayed: game.playerA.played, playerPlayed: game.playerB.played }
+
+  incrementIfPlayed :: RPS -> Int -> Int
+  incrementIfPlayed rps n = if playerPlayed == rps then n + 1 else n

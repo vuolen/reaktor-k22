@@ -7,8 +7,8 @@ import Effect (Effect)
 import Prelude (bind, map, min, pure, show, ($), (+), (<), (<>))
 import RPS.UI.PlayedGame (playedGameComponent)
 import React (ReactClass, ReactElement, ReactThis, component, createLeafElement, getProps, getState, setState)
-import React.DOM (button, table', tbody', td, text, tfoot', th', thead', tr')
-import React.DOM.Props (_type, colSpan, onClick)
+import React.DOM (button, table, table', tbody', td, text, tfoot', th', thead', tr')
+import React.DOM.Props (_type, className, colSpan, onClick)
 import Rps.Types (PlayedGame)
 import Rps.Util (emptyElement)
 
@@ -30,7 +30,7 @@ render :: ReactThis PlayedGameTableProps PlayedGameTableState -> Effect ReactEle
 render this = do
   { playedGames } <- getProps this
   { rowsToDisplay } <- getState this
-  pure $ table'
+  pure $ table [className "playedGamesTable"]
     [ thead'
         [ tr'
             [ th' [ text "Finished" ]

@@ -34,7 +34,7 @@ render this = do
       toggleCollapsed = \_ -> do setState this { collapsed: not collapsed }
 
       aggregateDataRow =
-        tr [ className "player", onClick toggleCollapsed ]
+        tr [ className "aggregateRow", onClick toggleCollapsed ]
           [ td' [ text player.name ]
           , td' [ winRatio player ]
           , td' [ int player.nGames ]
@@ -42,10 +42,9 @@ render this = do
           ]
 
       playedGamesTableRow =
-        tr'
-          [ td [ colSpan 4 ]
-              [ createLeafElement playedGameTableComponent { playedGames: player.games }
-              ]
+        tr [ className "playedGamesRow" ]
+          [ td [ colSpan 5, className "playedGameCell" ]
+              [ createLeafElement playedGameTableComponent { playedGames: player.games } ]
           ]
     in
       fragmentWithKey player.name

@@ -2,7 +2,7 @@ module Rps.UI.App where
 
 import React
 
-import React.DOM (div, div')
+import React.DOM (div)
 import React.DOM.Props (className)
 import Rps.Emitters.History (History)
 import Rps.Types (LiveGame)

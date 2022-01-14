@@ -5,7 +5,7 @@ import React
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Prelude (map, show, ($), (<>))
-import React.DOM (b', br', div, div', h2', text)
+import React.DOM (b', br', div, text)
 import React.DOM.Props (className)
 import Rps.Types (LiveGame(..), PlayedGame, RPS(..))
 

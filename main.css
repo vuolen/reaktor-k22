@@ -3,46 +3,56 @@ body {
     color: #34363b;
     font-family: 'Helvetica', 'Arial', sans-serif;
     font-size: 1em;
+    max-width: 50em;
+    margin: auto;
+}
+
+#root {
 }
 
 .app {
-    width: 100%;
 }
 
 .history {
-    width: 50%;
-    float: right;
-    display: flex;
-    flex-direction: column;
+}
+
+.historyTable {
+    width: 100%;
 }
 
 .live {
-    width: 50%;
-    float: left;
+    position: fixed;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-height: 5em;
+    width: 62.5em;
+    font-size: 0.8em;
+    background: #cccccc;
+    bottom: 0;
+    border-radius: 5px;
+    border: 1px solid black;
 }
 
 .liveGame {
-    margin: 5px;
+    margin: 10px;
 }
 
 td {
     text-align: center;
+    padding: 4px;
 }
 
-.player {
-    margin: 5px;
+
+.aggregateRow {
     background: #dddddd;
     border-radius: 5px;
     box-shadow: 1px 1px 2px #111111;
 }
 
-.player-header {
-    padding: 5px;
-    background: #cccccc;
+.playedGamesRow {
+    background: #dddddd;
 }
 
-.player-header-cell {
-    text-align: center;
+.playedGamesTable {
 }
