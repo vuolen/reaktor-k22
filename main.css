@@ -7,15 +7,6 @@ body {
     margin: auto;
 }
 
-#root {
-}
-
-.app {
-}
-
-.history {
-}
-
 .historyTable {
     width: 100%;
 }
@@ -52,7 +43,4 @@ td {
 
 .playedGamesRow {
     background: #dddddd;
-}
-
-.playedGamesTable {
 }
