@@ -2,6 +2,7 @@ module Rps.Util where
 
 import Halogen.Subscription (Emitter, makeEmitter, subscribe, unsubscribe)
 import Prelude (bind, discard, pure, ($))
+import React (ReactElement, createElement, fragment)
 import Rps.Types (RPS(..))
 
 -- Creates an emitter that immediately emits first, then the other emitters values
@@ -17,3 +18,6 @@ isWin Rock Scissors = true
 isWin Scissors Paper = true
 isWin Paper Rock = true
 isWin _ _ = false
+
+emptyElement :: ReactElement
+emptyElement = createElement fragment {} []

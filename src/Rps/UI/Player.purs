@@ -11,6 +11,8 @@ import React (ReactClass, ReactElement, ReactThis, component, createLeafElement,
 import React.DOM (div', int, table', tbody', td, td', text, th', thead', tr, tr')
 import React.DOM.Props (className, colSpan, hidden, onClick)
 import Rps.Emitters.History (Player)
+import Rps.UI.PlayedGameTable (playedGameTableComponent)
+import Rps.Util (emptyElement)
 
 type PlayerProps = {player :: Player}
 type PlayerState = {collapsed :: Boolean}
@@ -39,24 +41,15 @@ render this = do
             td' [int player.nGames],
             td' [mostPlayed player]
         ],
-        if not collapsed then 
-            tr [className "playedGames"] [
-                td [colSpan 4] [
-                    table' [
-                        thead' [
-                            tr' [
-                                th' [text "Finished"],
-                                th' [text "Player A"],
-                                th' [text "Player B"],
-                                th' [text "Winner"]
-                            ]
-                        ],
-                        tbody' $ map createPlayedGame player.games
-                    ]
+        if not collapsed then
+            tr' [
+                td [
+                    colSpan 4
+                ] [
+                    createLeafElement playedGameTableComponent {playedGames: player.games}
                 ]
-                
             ]
-        else div' []
+        else emptyElement
     ]
     where 
         winRatio :: Player -> ReactElement
