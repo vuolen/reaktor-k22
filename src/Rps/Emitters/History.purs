@@ -21,10 +21,10 @@ import Halogen.Subscription (Emitter, fold, makeEmitter, subscribe, unsubscribe)
 import Rps.API (HistoryResponse, apiGetJson)
 import Rps.Emitters.WS as WS
 import Rps.Types (RPS(..), WSEvent(..), PlayedGame)
-import Rps.Util (isWin, withFirst)
+import Rps.Util (isWin, throttle, withFirst)
 
 historyEmitter :: Emitter History
-historyEmitter = withFirst empty $ fold (\page history -> runST (foldr addGameToHistory (thawST history) page)) playedGamesEmitter empty
+historyEmitter = throttle 500.0 $ withFirst empty $ fold (\page history -> runST (foldr addGameToHistory (thawST history) page)) playedGamesEmitter empty
 
 -- emits an array for efficiency. When a page gets fetched theres ~600 games and updating the history one by one is a bit slow
 playedGamesEmitter :: Emitter (Array PlayedGame)
