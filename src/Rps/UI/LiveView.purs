@@ -8,11 +8,12 @@ import React.DOM.Props (className)
 import Rps.Types (LiveGame)
 import Rps.UI.LiveGame (liveGame)
 
-type LiveViewProps = {liveGames :: Array LiveGame}
+type LiveViewProps = { liveGames :: Array LiveGame }
 
 liveView :: ReactClass LiveViewProps
-liveView = statelessComponent \{liveGames} ->
-    div [className "live"] $ [
-        h1' [text "Live"]
+liveView = statelessComponent \{ liveGames } ->
+  div [ className "live" ] $
+    [ h1' [ text "Live" ]
     ] <> (map createLiveGame liveGames)
-    where createLiveGame game = createLeafElement liveGame {game}
+  where
+  createLiveGame game = createLeafElement liveGame { game }

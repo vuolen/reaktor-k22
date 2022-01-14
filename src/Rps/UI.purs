@@ -18,11 +18,11 @@ renderApp props = do
   document <- DOM.document window
 
   let
-      node = DOM.toNonElementParentNode document
+    node = DOM.toNonElementParentNode document
 
   maybeElement <- DOM.getElementById "root" node
 
   let
-      element' = unsafePartial (fromJust maybeElement)
+    element' = unsafePartial (fromJust maybeElement)
 
   void $ ReactDOM.render (React.createLeafElement app props) element'

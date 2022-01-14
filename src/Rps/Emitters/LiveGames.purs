@@ -12,20 +12,20 @@ import Rps.Util (withFirst)
 
 liveGamesEmitter :: Emitter (Array LiveGame)
 liveGamesEmitter = withFirst [] $ makeEmitter \cb -> do
-    liveGameMap :: Ref.Ref (Object LiveGame) <- Ref.new empty
+  liveGameMap :: Ref.Ref (Object LiveGame) <- Ref.new empty
 
-    let
-        updateLiveGames :: WSEvent -> Effect Unit
-        updateLiveGames (GameBegin newGame) = modifyRefAndNotifyValues (insert newGame.gameId (InProgress newGame))
-        updateLiveGames (GameResult playedGame) = do
-            _ <- modifyRefAndNotifyValues (insert playedGame.gameId (Finished playedGame))
-            void $ setTimeout 5000 $ do
-                modifyRefAndNotifyValues (delete playedGame.gameId)
-                
-        modifyRefAndNotifyValues :: (Object LiveGame -> Object LiveGame) -> Effect Unit
-        modifyRefAndNotifyValues fn = do
-            newMap <- Ref.modify fn liveGameMap
-            cb $ values newMap
+  let
+    updateLiveGames :: WSEvent -> Effect Unit
+    updateLiveGames (GameBegin newGame) = modifyRefAndNotifyValues (insert newGame.gameId (InProgress newGame))
+    updateLiveGames (GameResult playedGame) = do
+      _ <- modifyRefAndNotifyValues (insert playedGame.gameId (Finished playedGame))
+      void $ setTimeout 5000 $ do
+        modifyRefAndNotifyValues (delete playedGame.gameId)
 
-    sub <- subscribe WS.connectWS updateLiveGames
-    pure $ unsubscribe sub
+    modifyRefAndNotifyValues :: (Object LiveGame -> Object LiveGame) -> Effect Unit
+    modifyRefAndNotifyValues fn = do
+      newMap <- Ref.modify fn liveGameMap
+      cb $ values newMap
+
+  sub <- subscribe WS.connectWS updateLiveGames
+  pure $ unsubscribe sub

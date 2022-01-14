@@ -9,11 +9,11 @@ import Rps.Types (LiveGame)
 import Rps.UI.HistoryView (historyView)
 import Rps.UI.LiveView (liveView)
 
-type AppProps = {liveGames :: Array LiveGame, history :: History}
+type AppProps = { liveGames :: Array LiveGame, history :: History }
 
 app :: ReactClass AppProps
-app = statelessComponent \{liveGames, history} ->
-    div [className "app"] [
-        createLeafElement liveView {liveGames},
-        createLeafElement historyView {history}
+app = statelessComponent \{ liveGames, history } ->
+  div [ className "app" ]
+    [ createLeafElement liveView { liveGames }
+    , createLeafElement historyView { history }
     ]
