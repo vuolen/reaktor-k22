@@ -2,6 +2,7 @@ module Rps.UI.HistoryView where
 
 import React
 
+import Data.Array (sortWith)
 import Foreign.Object (values)
 import Prelude (map, ($))
 import React.DOM (div, h1', hr', table, tbody', text, th', thead', tr')
@@ -28,7 +29,7 @@ historyView =
                         , th' [ text "Most played hand" ]
                         ]
                     ]
-                , tbody' $ map createPlayer $ values history
+                , tbody' $ map createPlayer $ sortWith (_.name) $ values history
                 ]
           ]
       ]
