@@ -31,6 +31,8 @@ to generate this file without the comments in this block.
   , "js-timers"
   , "math"
   , "maybe"
+  , "newtype"
+  , "now"
   , "partial"
   , "prelude"
   , "psci-support"
