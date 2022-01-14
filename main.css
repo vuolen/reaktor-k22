@@ -23,6 +23,10 @@ body {
     flex-direction: column;
 }
 
+.liveGame {
+    margin: 5px;
+}
+
 td {
     text-align: center;
 }
