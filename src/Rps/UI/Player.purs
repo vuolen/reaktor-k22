@@ -7,7 +7,7 @@ import Effect (Effect)
 import Math (trunc)
 import Prelude (bind, max, not, otherwise, pure, show, ($), (*), (/), (<>), (==), (>))
 import React (ReactClass, ReactElement, ReactThis, component, createLeafElement, fragmentWithKey, getProps, getState, setState)
-import React.DOM (int, td, td', text, tr)
+import React.DOM (int, td, td', text, tr, span)
 import React.DOM.Props (className, colSpan, onClick)
 import Rps.Emitters.History (Player)
 import Rps.UI.PlayedGameTable (playedGameTableComponent)
@@ -35,7 +35,7 @@ render this = do
 
       aggregateDataRow =
         tr [ className "aggregateRow", onClick toggleCollapsed ]
-          [ td' [ text player.name ]
+          [ td' [ collapsibleIcon collapsed, text player.name ]
           , td' [ winRatio player ]
           , td' [ int player.nGames ]
           , td' [ mostPlayed player ]
@@ -62,3 +62,8 @@ render this = do
     | player.nRocks > max player.nPapers player.nScissors = text "Rock"
     | player.nPapers > max player.nRocks player.nScissors = text "Paper"
     | otherwise = text "Scissors"
+
+  collapsibleIcon :: Boolean -> ReactElement
+  collapsibleIcon collapsed = span [className "collapsibleIcon"] [
+    text $ if collapsed then "+" else "-"
+  ]

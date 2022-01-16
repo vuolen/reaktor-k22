@@ -44,3 +44,9 @@ td {
 .playedGamesRow {
     background: #dddddd;
 }
+
+.collapsibleIcon {
+    font-weight: bold;
+    float: left;
+    width: 1em;
+}
